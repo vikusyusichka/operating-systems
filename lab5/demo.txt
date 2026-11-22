@@ -1,0 +1,110 @@
+# нова ФС: у корені вже є . та ..
+mkfs 32
+ls /
+stat /
+
+# дерево директорій: абсолютні та відносні шляхи
+mkdir /home
+mkdir home/user
+mkdir /home/user/docs
+stat /home
+cd /home/user
+pwd
+ls
+ls ..
+
+# команди лабораторної №4 з шляховими іменами
+create notes.txt
+open notes.txt
+write 0 24 notes-
+close 0
+create /home/user/docs/a.txt
+open ./docs/../docs/a.txt
+write 0 10 A
+close 0
+stat /home/./user/../user/notes.txt
+
+# . та .. у корені вказують на корінь
+cd docs
+pwd
+cd ../../../../..
+pwd
+
+# символічні посилання: абсолютне, відносне, на директорію, ланцюжок
+symlink /home/user/notes.txt /n
+symlink user/notes.txt /home/rel
+symlink ../.. /home/user/docs/up
+symlink /n /n2
+ls /
+ls /home
+ls /home/user/docs
+stat /n
+stat /home/rel
+open /n
+read 0 24
+close 0
+open /home/rel
+seek 0 18
+read 0 6
+close 0
+open /n2
+read 0 6
+close 0
+
+# символічне посилання в середині шляху
+ls /home/user/docs/up/user
+cd /home/user/docs/up
+pwd
+cd /
+
+# посилання на неіснуючий файл і цикл
+symlink /nothing /dang
+stat /dang
+open /dang
+symlink /loop2 /loop1
+symlink /loop1 /loop2
+open /loop1
+cd /loop1/x
+
+# link і unlink працюють із самим символічним посиланням
+link /n /n-copy
+stat /n-copy
+stat /home/user/notes.txt
+unlink /n
+open /n-copy
+read 0 6
+close 0
+truncate /n-copy 5
+stat /home/user/notes.txt
+
+# жорстке посилання на файл в іншій директорії
+link /home/user/notes.txt /home/notes-hard
+stat /home/notes-hard
+
+# link і unlink не працюють з директоріями
+link /home /h
+unlink /home/user
+
+# rmdir
+rmdir /home/user/docs
+unlink /home/user/docs/up
+unlink /home/user/docs/a.txt
+stat /home/user
+rmdir /home/user/docs
+stat /home/user
+cd /home/user
+rmdir /home/user
+rmdir .
+rmdir ..
+rmdir /
+
+# інші помилки
+mkdir /home
+mkdir /nothing/dir
+cd /home/user/notes.txt
+create /home/user/notes.txt/x
+open /home
+create /home/user/../../home/user/this-name-is-way-too-long-for-the-fs
+
+ls /
+df
