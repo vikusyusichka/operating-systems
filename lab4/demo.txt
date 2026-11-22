@@ -1,0 +1,86 @@
+# створення ФС на носії
+mkfs 32
+df
+ls
+
+# create, ls, stat
+create a
+create b
+ls
+stat a
+
+# один файл відкрито двічі, у кожного fd своє зміщення
+open a
+open a
+write 0 20 hello-
+seek 1 0
+read 1 20
+read 1 10
+
+# запис через межу блоку (512 байт)
+seek 0 500
+write 0 30 XY
+stat a
+
+# запис далеко за кінцем файлу: проміжні блоки не створюються,
+# посилання 11 вже у блоці непрямих посилань
+seek 0 6000
+write 0 10 END
+stat a
+seek 1 1000
+read 1 16
+
+# найменший вільний fd
+close 0
+open b
+close 0
+
+# truncate: збільшення не створює блоків, зменшення звільняє
+df
+truncate a 40000
+stat a
+df
+truncate a 510
+stat a
+seek 1 490
+read 1 30
+df
+
+# жорсткі посилання
+link a c
+ls
+stat c
+unlink a
+ls
+stat c
+close 1
+
+# файл без жодного посилання доступний, поки відкритий
+open b
+write 0 1500 data
+df
+unlink b
+ls
+seek 0 1495
+read 0 10
+close 0
+df
+
+# запис нулів не створює блоків, обнулений блок звільняється
+create z
+open z
+write 0 512 X
+stat z
+seek 0 0
+write 0 512 \0
+stat z
+close 0
+
+# помилки
+open nothing
+create c
+close 7
+create this-name-is-way-too-long-for-the-fs
+read 3 10
+
+ls
